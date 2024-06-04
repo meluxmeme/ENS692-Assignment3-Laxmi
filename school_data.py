@@ -1,28 +1,110 @@
 # school_data.py
-# AUTHOR NAME
+# AUTHOR NAME: Laxmi Paudel
 #
 # A terminal-based application for computing and printing statistics based on given input.
-# You must include the main listed below. You may add your own additional classes, functions, variables, etc. 
-# You may import any modules from the standard Python library.
-# Remember to include docstrings and comments.
+
 
 
 import numpy as np
 from given_data import year_2013, year_2014, year_2015, year_2016, year_2017, year_2018, year_2019, year_2020, year_2021, year_2022
-## Declare any global variables needed to store the data here
+
+class School:
+    def __init__(self, data, school_names):
+        """
+        Initialize the SchoolEnrollment class with data and school names.
+
+        :param data: List of yearly enrollment data.
+        :param array3D : 3D array of the given data
+        :param school_names: Dictionary mapping school codes to school names.
+        :param school_codes: make a list of school codes.
+        :grad_10_data: array of all grade 10 data
+        :grad_11_data: array of all grade 11 data
+        :grad_12_data: array of all grade 12 data
+        """
+        self.array3D = np.stack(data).reshape(10, 20, 3)
+        self.school_names = school_names
+        self.school_codes = list(school_names.keys())
+        self.grad_10_data = self.array3D[:,:,0]
+        self.grad_11_data = self.array3D[:,:,1]
+        self.grad_12_data = self.array3D[:,:,2]
+
+    def get_school_code(self, userdata):
+        """
+        Get the school code from the user input, which could be a code or a name.
+
+        :param userdata: User input which could be a school code or name.
+        :return: School code if found, otherwise raise error.
+        """
+        if userdata.isdigit() and int(userdata) in self.school_names:
+            return int(userdata)
+        elif userdata in self.school_names.values():
+            return self.school_codes[list(self.school_names.values()).index(userdata)]
+        else:
+            raise ValueError("Invalid input, Enter valid school name or code")
 
 
-# You may add your own additional classes, functions, variables, etc.
+    def compute_statforASchool(self, school_code):
+        """
+        Compute and print statistics for the given school code.
 
+        :param school_code: School code to compute statistics for, 
+        :find the index of school code in a school_code list and calculate statistics based on the index.
+        """
+        print("\n***Requested School Statistics***\n")
+
+        index = self.school_codes.index(school_code)
+        print(f"\nSchool Name: {self.school_names[school_code]}, School Code: {school_code}:\n")
+
+        grad_10_mean = int(np.nanmean(self.array3D[:, index, 0]))
+        grad_11_mean = int(np.nanmean(self.array3D[:, index, 1]))
+        grad_12_mean = int(np.nanmean(self.array3D[:, index, 2]))
+        highest_enrollment = int(np.nanmax(self.array3D[:, index, :]))
+        lowest_enrollment = int(np.nanmin(self.array3D[:, index, :]))
+
+        print(f"Mean enrollment for Grade 10 across all years: {grad_10_mean}")
+        print(f"Mean enrollment for Grade 11 across all years: {grad_11_mean}")
+        print(f"Mean enrollment for Grade 12 across all years: {grad_12_mean:.2f}")
+        print(f"Highest enrollment for a single grade within the entire time period: {highest_enrollment}")
+        print(f"Lowest enrollment for a single grade within the entire time period: {lowest_enrollment}")
+
+        for year in range(10):
+            
+            print(f"Total enrollment for {2013 + year}: {int(np.sum(self.array3D[year, index, :]))}")
+
+        total_ten_year_enrollment = np.sum(self.array3D[:, index, :])
+        mean_ten_year_enrollment = np.nanmean(total_ten_year_enrollment)
+
+        print(f"Total ten year enrollment: {int(total_ten_year_enrollment)}")
+        print(f"Mean total year enrollment over ten years: {int(mean_ten_year_enrollment)}")
+
+        mask = self.array3D[:, index, :] > 500
+        elements_gt_500 = self.array3D[:, index, :][mask]
+        if elements_gt_500.size > 0:
+            median_gt_500 = int(np.nanmedian(elements_gt_500))
+            print(f"For all enrollment over 500, median is: {median_gt_500}")
+        else:
+            print("No enrollment data over 500.")
+
+    def compute_statforallSchool(self):
+        """Compute and print required statistics for ALL School.
+
+        """
+        print("\n***General Statistics for All Schools***\n")
+        mean_2013 = int(np.nanmean(self.array3D[1, : :]))
+        mean_2022 = int(np.nanmean(self.array3D[9, : :]))
+
+        print(f"Mean enrollment in 2013 :  {mean_2013}")
+        print(f"Mean enrollment in 2012 :  {mean_2022}")
+        print(f"Total graduating year class of 2022 :  {int(np.nansum(self.array3D[9, :, 2]))}")
+        print(f"Highest enrollment for a single grade :  {int(np.nanmax(self.array3D[:, :, :]))}")
+        print(f"Lowest enrollment for a single grade :  {int(np.nanmin(self.array3D[:, :, :]))}")
 
 def main():
     print("ENSF 692 School Enrollment Statistics")
-    
-   
-    # Print Stage 1 requirements here
-    array1 = np.stack((year_2013, year_2014, year_2015, year_2016, year_2017, year_2018, year_2019, year_2020, year_2021, year_2022))
-    reshapedArray = array1.reshape(10,20,3)
-    school_name ={
+    #data initialization
+    data = [year_2013, year_2014, year_2015, year_2016, year_2017, year_2018, year_2019, year_2020, year_2021, year_2022]
+    """ dictionary mapping school code to name from given dataset Assignment3Data.csv """
+    school_names = {
         1224: 'Centennial High School',
         1679: 'Robert Thirsk School',
         9626: 'Louise Dean School',
@@ -44,71 +126,20 @@ def main():
         9860: 'John G Diefenbaker High School',
         9865: 'Lester B. Pearson High School'
     }
-    schoolcode =[school_name.keys()]
-    print(schoolcode)
-    userdata = input("Enter school name or code")
-    if userdata.isdigit() and int(userdata) in school_name:
-       print(f"The school name for code {userdata} is {school_name[int(userdata)]}")
-       indexof =list(school_name.keys()).index(int(userdata))
-       #print(indexof)
-       # userdata.index()
-    #    schoolcode =[school_name.keys()]
-    #    print(schoolcode)
-    elif userdata in school_name.values():
-        print(f"The code for school {userdata} is {list(school_name.keys())[list(school_name.values()).index(userdata)]}")
-    else:
-        print("School or code not found.")
-
-
-
-    grad_10_mean = np.mean(reshapedArray[0:10, indexof, 0])
-    print("Mean enrollment for Grade 10 across all years " + str( grad_10_mean))
-
-    grad_11_mean = np.mean(reshapedArray[0:10, indexof, 1])
-    print("Mean enrollment for Grade 11 across all years " + str( grad_11_mean))
-
-    grad_12_mean = np.mean(reshapedArray[0:10, indexof, 2])
-    print("Mean enrollment for Grade 12 across all years" + str( grad_12_mean))
-    
-    highest_enrollment = np.max(reshapedArray[0:10, indexof, ::])
-    print("Highest enrollment for a single grade within the entire time period :" + str(int(highest_enrollment)))
-    
-
-    lowest_enrollment = np.min(reshapedArray[0:10, indexof, ::])
-    print("Highest enrollment for a single grade within the entire time period :" + str(int(lowest_enrollment)))
-
-
-   
-    print("Total enrollment for 2013 : " + str(int(np.sum(reshapedArray[0, indexof, ::]))) )
-    print("Total enrollment for 2014 : " + str(int(np.sum(reshapedArray[1, indexof, ::]))))
-    print("Total enrollment for 2015 : " + str(int(np.sum(reshapedArray[2, indexof, ::])) ))
-    print("Total enrollment for 2016 : " + str(int(np.sum(reshapedArray[3, indexof, ::])) ))
-    print("Total enrollment for 2017 : " + str(int(np.sum(reshapedArray[4, indexof, ::])) ))
-    print("Total enrollment for 2018 : " + str(int(np.sum(reshapedArray[5, indexof, ::])) ))
-    print("Total enrollment for 2019 : " + str(int(np.sum(reshapedArray[6, indexof, ::])) ))
-    print("Total enrollment for 2020 : " + str(int(np.sum(reshapedArray[7, indexof, ::])) ))
-    print("Total enrollment for 2021 : " + str(int(np.sum(reshapedArray[8, indexof, ::])) ))
-    print("Total enrollment for 2022 : " + str(int(np.sum(reshapedArray[9, indexof, ::])) ))
-    print("Total ten year enrollment : " + str(int(np.sum(reshapedArray[::, indexof, ::])) ))
-    print("Mean total year enrollment over ten years : " + str((int(reshapedArray[::, indexof, ::].sum())/10) ))
-    
-    mask = reshapedArray[::, indexof, ::] > 500
-
-# Apply mask to find elements greater than 500
-    elements_gt_500 = reshapedArray[::, indexof, ::][mask]
-
-# Calculate median of elements greater than 500
-    median_gt_500 = np.median(elements_gt_500)
-    #enroll_over_500 = reshapedArray[::, indexof, ::]>500
-    print("For all enrollment over 500, median is : " + str(int (median_gt_500)))
-
-    # Print Stage 2 requirements here
-    print("\n***Requested School Statistics***\n")
-
-    # Print Stage 3 requirements here
-    print("\n***General Statistics for All Schools***\n")
-
-
+     
+    enrollment = School(data, school_names)
+    print(f"Shape of full data array :  {(np.stack(enrollment.array3D).reshape(10, 20, 3)).shape}")
+    #run the code until user input is valid
+    while True:
+        try:
+            userdata = input("Please enter the high school code or name : ")
+            school_code = enrollment.get_school_code(userdata)
+            if school_code in school_names:
+                enrollment.compute_statforASchool(school_code)
+                enrollment.compute_statforallSchool()
+            break
+        except ValueError as e:
+            print(e)
 if __name__ == '__main__':
     main()
 
