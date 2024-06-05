@@ -33,7 +33,7 @@ class School:
         Get the school code from the user input, which could be a code or a name.
 
         :param userdata: User input which could be a school code or name.
-        :return: School code if found, otherwise raise error.
+        :return: School code if found, otherwise raise value error.
         """
         if userdata.isdigit() and int(userdata) in self.school_names:
             return int(userdata)
@@ -48,13 +48,14 @@ class School:
         Compute and print statistics for the given school code.
 
         :param school_code: School code to compute statistics for, 
-        :find the index of school code in a school_code list and calculate statistics based on the index.
+        :index: find the index of school code in a school_code list and calculate statistics based on the index.
         """
         print("\n***Requested School Statistics***\n")
 
         index = self.school_codes.index(school_code)
         print(f"\nSchool Name: {self.school_names[school_code]}, School Code: {school_code}:\n")
 
+        # calculate the mean of each grade, highest and lowest enrollment of the entire period of the requested school using fancy indexing
         grad_10_mean = int(np.nanmean(self.array3D[:, index, 0]))
         grad_11_mean = int(np.nanmean(self.array3D[:, index, 1]))
         grad_12_mean = int(np.nanmean(self.array3D[:, index, 2]))
@@ -63,20 +64,21 @@ class School:
 
         print(f"Mean enrollment for Grade 10 across all years: {grad_10_mean}")
         print(f"Mean enrollment for Grade 11 across all years: {grad_11_mean}")
-        print(f"Mean enrollment for Grade 12 across all years: {grad_12_mean:.2f}")
+        print(f"Mean enrollment for Grade 12 across all years: {grad_12_mean}")
         print(f"Highest enrollment for a single grade within the entire time period: {highest_enrollment}")
         print(f"Lowest enrollment for a single grade within the entire time period: {lowest_enrollment}")
 
-        for year in range(10):
-            
+        #use for loop to calculate and print total enrollment of each year of the requested school.
+        for year in range(10):  
             print(f"Total enrollment for {2013 + year}: {int(np.sum(self.array3D[year, index, :]))}")
-
+        # calculate total ten year enrollment and mean of that and print values
         total_ten_year_enrollment = np.sum(self.array3D[:, index, :])
-        mean_ten_year_enrollment = np.nanmean(total_ten_year_enrollment)
+        mean_ten_year_enrollment = np.sum(self.array3D[:, index, :]/10)
 
         print(f"Total ten year enrollment: {int(total_ten_year_enrollment)}")
-        print(f"Mean total year enrollment over ten years: {int(mean_ten_year_enrollment)}")
+        print(f"Mean total enrollment over 10 years: {int(mean_ten_year_enrollment)}")
 
+        #checking either values are greatert than 500 or not, use array masking for that and calculate median of that values
         mask = self.array3D[:, index, :] > 500
         elements_gt_500 = self.array3D[:, index, :][mask]
         if elements_gt_500.size > 0:
@@ -86,8 +88,10 @@ class School:
             print("No enrollment data over 500.")
 
     def compute_statforallSchool(self):
-        """Compute and print required statistics for ALL School.
 
+        """Compute and print required statistics for ALL School.
+        :mean_2013 mean of total enrollment of year 2012
+        :mean_2022 mean of total enrollment of year 2022
         """
         print("\n***General Statistics for All Schools***\n")
         mean_2013 = int(np.nanmean(self.array3D[1, : :]))
@@ -95,14 +99,18 @@ class School:
 
         print(f"Mean enrollment in 2013 :  {mean_2013}")
         print(f"Mean enrollment in 2012 :  {mean_2022}")
+        #calculate total graduating of the year 2022 and print value on the same line
         print(f"Total graduating year class of 2022 :  {int(np.nansum(self.array3D[9, :, 2]))}")
+        #calculate highest enrollment of all grades and schools and print value on the same line
         print(f"Highest enrollment for a single grade :  {int(np.nanmax(self.array3D[:, :, :]))}")
+        #calculate lowest enrollment of all grades and schools and print value on the same line
         print(f"Lowest enrollment for a single grade :  {int(np.nanmin(self.array3D[:, :, :]))}")
 
 def main():
     print("ENSF 692 School Enrollment Statistics")
     #data initialization
     data = [year_2013, year_2014, year_2015, year_2016, year_2017, year_2018, year_2019, year_2020, year_2021, year_2022]
+
     """ dictionary mapping school code to name from given dataset Assignment3Data.csv """
     school_names = {
         1224: 'Centennial High School',
@@ -127,9 +135,10 @@ def main():
         9865: 'Lester B. Pearson High School'
     }
      
+     #initialize the class object with data of 10 different year.
     enrollment = School(data, school_names)
     print(f"Shape of full data array :  {(np.stack(enrollment.array3D).reshape(10, 20, 3)).shape}")
-    #run the code until user input is valid
+    #run the code until user-input is valid, if user data is invalid throws a valueerror and prompt user to reenter 
     while True:
         try:
             userdata = input("Please enter the high school code or name : ")
